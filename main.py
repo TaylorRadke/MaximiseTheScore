@@ -7,6 +7,7 @@ class MaxHeap:
     def __init__(self):    
         self.root = None
         self.insertion_stack = []
+        self.values = []
 
     def insert(self, value):
         if not self.root:
@@ -45,7 +46,7 @@ class MaxHeap:
     def upheap(self):
         node = self.last_insertion
         
-        while node is not self.root and node.value[0] > node.parent.value[0]:
+        while node is not self.root and node > node.parent:
             node.swap(node.parent)
             node = node.parent
 
@@ -55,21 +56,18 @@ class MaxHeap:
 
         if left:
             if right:
-                if left.value[0] > node.value[0] or right.value[0] > node.value[0]:
-                    if left.value[0] > right.value[0]:
-                      #  print(f"left, swapping {left.value[0]} with {node.value[0]}")
-                        node.swap(left)
-                        self.downheap(left)
-                    elif right.value[0] > left.value[0]:
-                      #  print(f"right, swapping {right.value[0]} with {node.value[0]}")
-                        node.swap(right)
-                        self.downheap(right)
-            else:
-                if left.value[0] > node.value[0]:
-                    #print(f"left, swapping {left.value[0]} with {node.value[0]}")
+                if left > node and left > right:
+                    #  print(f"left, swapping {left.value[0]} with {node.value[0]}")
                     node.swap(left)
                     self.downheap(left)
-            
+                elif right > node and right > left:
+                    #  print(f"right, swapping {right.value[0]} with {node.value[0]}")
+                    node.swap(right)
+                    self.downheap(right)
+            elif not right and left > node:
+                #print(f"left, swapping {left.value[0]} with {node.value[0]}")
+                node.swap(left)
+                self.downheap(left)
 
     def heapify(self, values):
         for val in values:
@@ -85,18 +83,47 @@ class MaxHeap:
 
         #Swap root value with last inserted node
         self.root.swap(self.last_insertion)
+        
+        self.delete_last_inserted()
 
+        self.values.append(max_value)
+
+        self.downheap(self.root)
+        return max_value
+    
+    def delete_last_inserted(self):
         #Pop current last insertion of stack
         self.insertion_stack.pop()
 
         # Set child of parent to None
-        if self.last_insertion.is_left_child():     self.last_insertion.parent.left = None
-        elif self.last_insertion.is_right_child():  self.last_insertion.parent.right = None
+        self.last_insertion.delete()
 
         self.last_insertion = self.insertion_stack[-1]
 
-        self.downheap(self.root)
-        return max_value
+    def remove_value(self,value):
+        #Find first occurrence of value in heap
+        frontier = []
+        frontier.append(self.root)
+
+        while frontier:
+            node = frontier.pop()
+
+            if node.value == value:
+                break
+            else:
+                if node.left:
+                    frontier.append(node.left)
+                if node.right:
+                    frontier.append(node.right)
+
+        node.swap(self.last_insertion)
+        
+        self.delete_last_inserted()
+
+        if node.value > node.parent.value:
+            self.upheap()
+        else:
+            self.downheap(node)
 
     #Max Heap node struct         
     class Node:
@@ -106,6 +133,15 @@ class MaxHeap:
             self.left = None
             self.right = None 
         
+        def __gt__(self,other):
+            return self.value[0] > other.value[0]
+
+        def __eq__(self,other):
+            return self.value[0] == other.value[0]
+
+        def __ne__(self,other):
+            return self.value[0] != other.value[0]
+
         def swap(self,other):
             self.value, other.value = other.value, self.value
         
@@ -114,61 +150,30 @@ class MaxHeap:
         
         def is_right_child(self):
             return self is self.parent.right if self.parent else False
-
+        
+        def delete(self):
+            if self.is_left_child():
+                self.parent.left = None
+            elif self.is_right_child():
+                self.parent.right = None
 
 
 class PrioritySumDigits(MaxHeap):
-    def upheap(self):
-        node = self.last_insertion
+    #Override how this class prioritises a nodes value
+    class Node(MaxHeap.Node):
+        def __eq__(self,other):
+            return self.value[0] == other.value[0] and self.value[1] == other.value[1]
 
-        while node is not self.root and node.value[1] >= node.parent.value[1]:
-            if node.value[1] > node.parent.value[1] or (node.value[1] == node.parent.value[1] and (node.value[0] > node.parent.value[0])):
-                node.swap(node.parent)
-            node = node.parent
-    
-    def downheap(self,node):
-        left = node.left
-        right = node.right
+        def __ne__(self,other):
+            return self.value[0] != other.value[0] and self.value[1] != other.value[1]
 
-        if left:
-            if right:
-                if left.value[1] > node.value[1] or right.value[1] > node.value[1]:
-                    if left.value[1] > right.value[1]:
-                        node.swap(left)
-                        self.downheap(left)
-                    elif right.value[1] > left.value[1]:
-                        node.swap(right)
-                        self.downheap(right)
-                    elif left.value[1] == right.value[1]:
-
-                        if left.value[0] > right.value[0]:
-                            node.swap(left)
-                            self.downheap(left)
-                        else:
-                            node.swap(right)
-                            self.downheap(right)
-                elif left.value[1] == node.value[1] or right.value[1] == node.value[1]:
-                    if left.value[1] > right.value[1]:
-                        node.swap(left)
-                        self.downheap(left)
-                    elif right.value[1] > left.value[1]:
-                        node.swap(right)
-                        self.downheap(right)
-                    elif left.value[1] == right.value[1]:
-                        if left.value[0] > right.value[0]:
-                            node.swap(left)
-                            self.downheap(left)
-                        else:
-                            node.swap(right)
-                            self.downheap(right)
-            else:
-                if left.value[1] > node.value[1]:
-                    node.swap(left)
-                    self.downheap(left)
-                elif left.value[1] == node.value[1]:
-                    if left.value[0] > node.value[0]:
-                        node.swap(left)
-                        self.downheap(left)
+        def __gt__(self,other):
+            if self.value[1] > other.value[1]:
+                return True
+            elif self.value[1] < other.value[1]:
+                return False
+            elif self.value[1] == other.value[1]:
+                return self.value[0] > other.value[0]
 
 
 #TODO: Fix, 1000 not giving 1
@@ -195,15 +200,11 @@ if __name__ == "__main__":
 
             value_priority_player.heapify(balls)
             sum_of_digits_priority_player.heapify(balls)
+
+            # val = value_priority_player.remove_max()
+            # sum_of_digits_priority_player.remove_value(val)
+
             for _ in balls:
                 print(sum_of_digits_priority_player.remove_max())
-           
 
-            # for _ in balls:
-            #     print(value_priority_player.remove_max())
-
-
-
-            print("=" * 30)
-
-
+            print("="*20)
