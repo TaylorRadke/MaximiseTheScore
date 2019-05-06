@@ -7,7 +7,7 @@ class MaxHeap:
     def __init__(self):    
         self.root = None
         self.insertion_stack = []
-        self.values = []
+        self.score = 0
 
     def insert(self, value):
         if not self.root:
@@ -23,7 +23,7 @@ class MaxHeap:
                 parent.right = self.Node(parent, value)
                 self.last_insertion = parent.right
 
-        self.upheap()
+        self.upheap(self.last_insertion)
         self.insertion_stack.append(self.last_insertion)
     
     def next_insertion(self):
@@ -43,9 +43,7 @@ class MaxHeap:
                 return node
             node = node.parent
 
-    def upheap(self):
-        node = self.last_insertion
-        
+    def upheap(self, node):
         while node is not self.root and node > node.parent:
             node.swap(node.parent)
             node = node.parent
@@ -86,18 +84,14 @@ class MaxHeap:
         
         self.delete_last_inserted()
 
-        self.values.append(max_value)
-
         self.downheap(self.root)
         return max_value
     
     def delete_last_inserted(self):
         #Pop current last insertion of stack
         self.insertion_stack.pop()
-
         # Set child of parent to None
         self.last_insertion.delete()
-
         self.last_insertion = self.insertion_stack[-1]
 
     def remove_value(self,value):
@@ -119,11 +113,15 @@ class MaxHeap:
         node.swap(self.last_insertion)
         
         self.delete_last_inserted()
-
-        if node.value > node.parent.value:
-            self.upheap()
+        
+        if node is not self.root:
+            if node.value > node.parent.value:
+                self.upheap(node)
+            else:
+                self.downheap(node) 
         else:
             self.downheap(node)
+        
 
     #Max Heap node struct         
     class Node:
@@ -200,11 +198,4 @@ if __name__ == "__main__":
 
             value_priority_player.heapify(balls)
             sum_of_digits_priority_player.heapify(balls)
-
-            # val = value_priority_player.remove_max()
-            # sum_of_digits_priority_player.remove_value(val)
-
-            for _ in balls:
-                print(sum_of_digits_priority_player.remove_max())
-
-            print("="*20)
+                
