@@ -181,50 +181,47 @@ class PrioritySumDigits(MaxHeap):
                 return self.value[0] > other.value[0]
 
 def sum_of_digits(val):
-    n_digits = int(math.log(val,10)) + 1
     sum = 0
-    for i in range(1,n_digits+1):
-        sum += int((val / pow(10,i) - val // pow(10,i)) * 10)
-    return sum
+    for n in range(0, int(math.log10(val)+1)):
+        sum += ((1 / pow(10,n) * ( val % pow(10,n + 1)  - (val % pow(10,n)))))
+    return int(sum)
 
+
+def main(input):
+    with open(sys.argv[1]) as input_file:
+        with open("output.txt",'w') as output_file:
+            test_cases = int(input_file.readline().replace("\n", ""))
+
+            for i in range(0, test_cases):
+                n,k = input_file.readline().replace("\n","").split(" ")
+                    
+                balls = [(int(i),sum_of_digits(int(i))) for i in input_file.readline().replace("\n","").replace("\t", " ").split(" ")]
+                toss_result = input_file.readline().replace("\n","").lower()
+
+                value_priority_player = MaxHeap()
+                sum_of_digits_priority_player = PrioritySumDigits()
+
+                value_priority_player.heapify(balls)
+                sum_of_digits_priority_player.heapify(balls)
+                
+                if toss_result == 'heads':
+                    current_player = value_priority_player
+                    waiting_player = sum_of_digits_priority_player
+                elif toss_result == 'tails':
+                    current_player = sum_of_digits_priority_player
+                    waiting_player = value_priority_player
+
+                while not current_player.is_empty():
+                    for _ in range(int(k)):
+                        if not current_player.is_empty():
+                            value, digit_sum = current_player.remove_max()
+                            current_player.score += value
+                            waiting_player.remove_value((value,digit_sum))
+                        else:
+                            break
+                    current_player, waiting_player = waiting_player, current_player
+
+                output_file.write(f"{str(value_priority_player.score)} {str(sum_of_digits_priority_player.score)}\n")
 
 if __name__ == "__main__":
-    with open(sys.argv[1]) as input_file:
-        results = []
-        test_cases = int(input_file.readline().replace("\n", ""))
-
-        for i in range(0, test_cases):
-            n,k = input_file.readline().replace("\n","").split(" ")
-                
-            balls = [(int(i),sum_of_digits(int(i))) for i in input_file.readline().replace("\n","").replace("\t", " ").split(" ")]
-            toss_result = input_file.readline().replace("\n","").lower()
-
-            value_priority_player = MaxHeap()
-            sum_of_digits_priority_player = PrioritySumDigits()
-
-            value_priority_player.heapify(balls)
-            sum_of_digits_priority_player.heapify(balls)
-            
-            if toss_result == 'heads':
-                current_player = value_priority_player
-                waiting_player = sum_of_digits_priority_player
-            elif toss_result == 'tails':
-                current_player = sum_of_digits_priority_player
-                waiting_player = value_priority_player
-
-            while not current_player.is_empty():
-                for _ in range(int(k)):
-                    if not current_player.is_empty():
-                        value, digit_sum = current_player.remove_max()
-                        current_player.score += value
-                        waiting_player.remove_value((value,digit_sum))
-                    else:
-                        break
-                current_player, waiting_player = waiting_player, current_player
-
-            results.append((value_priority_player.score, sum_of_digits_priority_player.score))
-        with open("output.txt",'w') as output_file:
-            for result in results:
-                score1, score2 = result
-                output_file.write(f"{str(score1)} {str(score2)}\n")
-
+    main(sys.argv[1])
