@@ -19,6 +19,7 @@ class MaxHeap:
             else:
                 insertion.right = self.Node(insertion, value)
                 self.last_insertion = insertion.right
+
             self.upheap()
     
     def next_insertion(self):
@@ -40,10 +41,12 @@ class MaxHeap:
                 return node
             node = node.parent
 
-
-    # Virtual method to be overriden by each player class based on how they plau
     def upheap(self):
-        pass
+        node = self.last_insertion
+        
+        while node is not self.root and node.value[0] > node.parent.value[0]:
+            node.swap(node.parent)
+            node = node.parent
 
     #Max Heap node struct         
     class Node:
@@ -54,11 +57,20 @@ class MaxHeap:
             self.right = None 
         
         def swap(self,other):
-            tmp_node = other
-            self = other
-            other = tmp_node
+            self.value, other.value = other.value, self.value
 
 
+class PrioritySumDigits(MaxHeap):
+    def upheap(self):
+        node = self.last_insertion
+
+        while node is not self.root and node.value[1] >= node.parent.value[1]:
+            if node.value[1] > node.parent.value[1] or (node.value[1] == node.parent.value[1] and (node.value[0] > node.parent.value[0])):
+                node.swap(node.parent)
+            node = node.parent
+
+
+#TODO: Fix, 1000 not giving 1
 def sum_of_digits(val):
     n_digits = int(math.log(val,10)) + 1
     sum = 0
@@ -67,18 +79,21 @@ def sum_of_digits(val):
     return sum
 
 if __name__ == "__main__":
+    
+    with open(sys.argv[1]) as input_file:
+        test_cases = int(input_file.readline().replace("\n", ""))
 
-                    #         1
-                    #     2       3
-                    #   4  5    6   7
+        for i in range(0, test_cases):
+            n,k = input_file.readline().replace("\n","").split(" ")
+                
+            balls = [(int(i),sum_of_digits(int(i))) for i in input_file.readline().replace("\n","").replace("\t", " ").split(" ")]
+            toss_result = input_file.readline().replace("\n","").lower()
 
-    heap = MaxHeap()
+            scott_heap = MaxHeap()
+            rusty_heap = PrioritySumDigits()
+            for ball in balls:
+                scott_heap.insert(ball)
+                rusty_heap.insert(ball)
+            print(rusty_heap.root.value, max(balls, key = lambda x: x[1]))
 
 
-    # with open(sys.argv[1]) as input_file:
-    #     test_cases = input_file.readline().replace("\n", "")
-
-    #     for i in range(0, int(test_cases)):
-    #         n,k = input_file.readline().replace("\n","").split(" ")
-    #         balls = [(int(i),sum_of_digits(int(i))) for i in input_file.readline().replace("\n","").replace("\t", " ").split(" ")]
-    #         toss_result = input_file.readline().replace("\n","").lower()
