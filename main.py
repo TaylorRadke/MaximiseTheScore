@@ -2,63 +2,61 @@
 import sys
 import math
 
-class Queue(list):
-    def enq(self,value):
-        self.insert(0,value)
-    
-    def dq(self):
-        return self.pop()
-
-    def empty(self):
-        return len(self) == 0
-
 class MaxHeap:
     def __init__(self):
-        self.size = 0
         self.root = None
-    
-    def isEmpty(self):
-        return self.size == 0
 
-    def get_root(self):
-        return self.root
-
-    def add_node(self, value):
+    def insert(self, value):
         if not self.root:
-            self.root = self.Node(self, value)
-            return
+            self.root = self.Node(None, value)
+            self.last_insertion = self.root
+        else:
+            insertion = self.next_insertion()
 
-        next_insertion = self.find_next_insertion()
-        if next_insertion:
-            print(next_insertion.value, value)
-            if not next_insertion.left:
-                next_insertion.left = self.Node(next_insertion,value)
+            if not insertion.left:
+                insertion.left = self.Node(insertion, value)
+                self.last_insertion = insertion.left
             else:
-                next_insertion.right = self.Node(next_insertion, value)
+                insertion.right = self.Node(insertion, value)
+                self.last_insertion = insertion.right
+            self.upheap()
     
-    def find_next_insertion(self):
-        q = Queue()
-        q.enq(self.root)
+    def next_insertion(self):
+        node = self.last_insertion
 
-        while not q.empty():
-            node = q.dq()
-            if node.left == None or node.right == None:
+        while True:
+            if node is self.root:
+                while node.left:
+                    node = node.left
                 return node
-            else:
-                q.enq(node.left)
-                q.enq(node.right)
+
+            if node is node.parent.left:
+                if not node.parent.right:
+                    return node.parent
+
+                node = node.parent.right
+                while node.left:
+                    node = node.left
+                return node
+            node = node.parent
+
 
     # Virtual method to be overriden by each player class based on how they plau
-    def heapify(self):
+    def upheap(self):
         pass
-            
-                
+
+    #Max Heap node struct         
     class Node:
         def __init__(self,parent,value):
             self.value = value
             self.parent = parent
             self.left = None
             self.right = None 
+        
+        def swap(self,other):
+            tmp_node = other
+            self = other
+            other = tmp_node
 
 
 def sum_of_digits(val):
@@ -70,8 +68,13 @@ def sum_of_digits(val):
 
 if __name__ == "__main__":
 
+                    #         1
+                    #     2       3
+                    #   4  5    6   7
+
     heap = MaxHeap()
-    
+
+
     # with open(sys.argv[1]) as input_file:
     #     test_cases = input_file.readline().replace("\n", "")
 
