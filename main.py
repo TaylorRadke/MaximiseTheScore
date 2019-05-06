@@ -5,6 +5,7 @@ import math
 class MaxHeap:
     def __init__(self):
         self.root = None
+        self.insertion_stack = []
 
     def insert(self, value):
         if not self.root:
@@ -19,8 +20,8 @@ class MaxHeap:
             else:
                 insertion.right = self.Node(insertion, value)
                 self.last_insertion = insertion.right
-
             self.upheap()
+        self.insertion_stack.append(self.last_insertion)
     
     def next_insertion(self):
         node = self.last_insertion
@@ -31,8 +32,8 @@ class MaxHeap:
                     node = node.left
                 return node
 
-            if node is node.parent.left:
-                if not node.parent.right:
+            if node.is_left_child():
+                if not node.is_right_child():
                     return node.parent
 
                 node = node.parent.right
@@ -48,6 +49,37 @@ class MaxHeap:
             node.swap(node.parent)
             node = node.parent
 
+    def heapify(self, values):
+        for val in values:
+            self.insert(val)
+
+    def remove_max(self):
+        #Get current max value in root
+        max_value = self.root.value
+        
+        if self.last_insertion is self.root:
+            return max_value
+
+        #Swap root value with last inserted node
+        self.root.swap(self.last_insertion)
+
+        #Pop current last insertion of stack
+        self.insertion_stack.pop()
+
+        # Set child of parent to None
+        if self.last_insertion.is_left_child():
+            self.last_insertion.parent.left = None
+        elif self.last_insertion.is_right_child():
+            self.last_insertion.parent.right = None
+
+        self.last_insertion = self.insertion_stack[-1]
+
+        self.downheap()
+        return max_value
+
+    def downheap(self):
+        pass
+
     #Max Heap node struct         
     class Node:
         def __init__(self,parent,value):
@@ -58,6 +90,13 @@ class MaxHeap:
         
         def swap(self,other):
             self.value, other.value = other.value, self.value
+        
+        def is_left_child(self):
+            return self is self.parent.left if self.parent else False
+        
+        def is_right_child(self):
+            return self is self.parent.right if self.parent else False
+
 
 
 class PrioritySumDigits(MaxHeap):
@@ -78,6 +117,7 @@ def sum_of_digits(val):
         sum += int((val / pow(10,i) - val // pow(10,i)) * 10)
     return sum
 
+
 if __name__ == "__main__":
     
     with open(sys.argv[1]) as input_file:
@@ -91,9 +131,11 @@ if __name__ == "__main__":
 
             scott_heap = MaxHeap()
             rusty_heap = PrioritySumDigits()
-            for ball in balls:
-                scott_heap.insert(ball)
-                rusty_heap.insert(ball)
-            print(rusty_heap.root.value, max(balls, key = lambda x: x[1]))
 
+            scott_heap.heapify(balls)
+            rusty_heap.heapify(balls)
 
+            for _ in range(len(balls)):
+                print(rusty_heap.remove_max())
+            
+            print("===========================")
