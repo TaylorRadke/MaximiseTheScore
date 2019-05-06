@@ -125,6 +125,50 @@ class PrioritySumDigits(MaxHeap):
             if node.value[1] > node.parent.value[1] or (node.value[1] == node.parent.value[1] and (node.value[0] > node.parent.value[0])):
                 node.swap(node.parent)
             node = node.parent
+    
+    def downheap(self,node):
+        left = node.left
+        right = node.right
+
+        if left:
+            if right:
+                if left.value[1] > node.value[1] or right.value[1] > node.value[1]:
+                    if left.value[1] > right.value[1]:
+                        node.swap(left)
+                        self.downheap(left)
+                    elif right.value[1] > left.value[1]:
+                        node.swap(right)
+                        self.downheap(right)
+                    elif left.value[1] == right.value[1]:
+
+                        if left.value[0] > right.value[0]:
+                            node.swap(left)
+                            self.downheap(left)
+                        else:
+                            node.swap(right)
+                            self.downheap(right)
+                elif left.value[1] == node.value[1] or right.value[1] == node.value[1]:
+                    if left.value[1] > right.value[1]:
+                        node.swap(left)
+                        self.downheap(left)
+                    elif right.value[1] > left.value[1]:
+                        node.swap(right)
+                        self.downheap(right)
+                    elif left.value[1] == right.value[1]:
+                        if left.value[0] > right.value[0]:
+                            node.swap(left)
+                            self.downheap(left)
+                        else:
+                            node.swap(right)
+                            self.downheap(right)
+            else:
+                if left.value[1] > node.value[1]:
+                    node.swap(left)
+                    self.downheap(left)
+                elif left.value[1] == node.value[1]:
+                    if left.value[0] > node.value[0]:
+                        node.swap(left)
+                        self.downheap(left)
 
 
 #TODO: Fix, 1000 not giving 1
@@ -150,9 +194,13 @@ if __name__ == "__main__":
             sum_of_digits_priority_player = PrioritySumDigits()
 
             value_priority_player.heapify(balls)
-
+            sum_of_digits_priority_player.heapify(balls)
             for _ in balls:
-                print(value_priority_player.remove_max())
+                print(sum_of_digits_priority_player.remove_max())
+           
+
+            # for _ in balls:
+            #     print(value_priority_player.remove_max())
 
 
 
