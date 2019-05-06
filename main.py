@@ -76,7 +76,8 @@ class MaxHeap:
 
         max_value = self.root.value
         
-        if self.last_insertion is self.root:
+        if not self.root.left and not self.root.right:
+            self.root = None
             return max_value
 
         #Swap root value with last inserted node
@@ -92,7 +93,10 @@ class MaxHeap:
         self.insertion_stack.pop()
         # Set child of parent to None
         self.last_insertion.delete()
-        self.last_insertion = self.insertion_stack[-1]
+        if self.insertion_stack:
+            self.last_insertion = self.insertion_stack[-1]
+        else:
+            self.root = None
 
     def remove_value(self,value):
         #Find first occurrence of value in heap
@@ -101,7 +105,6 @@ class MaxHeap:
 
         while frontier:
             node = frontier.pop()
-
             if node.value == value:
                 break
             else:
@@ -114,14 +117,17 @@ class MaxHeap:
         
         self.delete_last_inserted()
         
-        if node is not self.root:
-            if node.value > node.parent.value:
-                self.upheap(node)
+        if not self.is_empty():
+            if node is not self.root:
+                if node.value > node.parent.value:
+                    self.upheap(node)
+                else:
+                    self.downheap(node) 
             else:
-                self.downheap(node) 
-        else:
-            self.downheap(node)
-        
+                self.downheap(node)
+    
+    def is_empty(self):
+        return self.root is None
 
     #Max Heap node struct         
     class Node:
@@ -150,10 +156,11 @@ class MaxHeap:
             return self is self.parent.right if self.parent else False
         
         def delete(self):
-            if self.is_left_child():
-                self.parent.left = None
-            elif self.is_right_child():
-                self.parent.right = None
+            if self.parent:
+                if self.is_left_child():
+                    self.parent.left = None
+                elif self.is_right_child():
+                    self.parent.right = None
 
 
 class PrioritySumDigits(MaxHeap):
@@ -173,8 +180,6 @@ class PrioritySumDigits(MaxHeap):
             elif self.value[1] == other.value[1]:
                 return self.value[0] > other.value[0]
 
-
-#TODO: Fix, 1000 not giving 1
 def sum_of_digits(val):
     n_digits = int(math.log(val,10)) + 1
     sum = 0
@@ -185,6 +190,7 @@ def sum_of_digits(val):
 
 if __name__ == "__main__":
     with open(sys.argv[1]) as input_file:
+        results = []
         test_cases = int(input_file.readline().replace("\n", ""))
 
         for i in range(0, test_cases):
@@ -198,4 +204,27 @@ if __name__ == "__main__":
 
             value_priority_player.heapify(balls)
             sum_of_digits_priority_player.heapify(balls)
-                
+            
+            if toss_result == 'heads':
+                current_player = value_priority_player
+                waiting_player = sum_of_digits_priority_player
+            elif toss_result == 'tails':
+                current_player = sum_of_digits_priority_player
+                waiting_player = value_priority_player
+
+            while not current_player.is_empty():
+                for _ in range(int(k)):
+                    if not current_player.is_empty():
+                        value, digit_sum = current_player.remove_max()
+                        current_player.score += value
+                        waiting_player.remove_value((value,digit_sum))
+                    else:
+                        break
+                current_player, waiting_player = waiting_player, current_player
+
+            results.append((value_priority_player.score, sum_of_digits_priority_player.score))
+        with open("output.txt",'w') as output_file:
+            for result in results:
+                score1, score2 = result
+                output_file.write(f"{str(score1)} {str(score2)}\n")
+
