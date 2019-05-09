@@ -6,17 +6,10 @@ from time import time
 
 class MaxHeap:
     
-    def __init__(self, name, init_values = None):    
+    def __init__(self):    
         self.root = None
         self.insertion_stack = []
         self.score = 0
-        self.name = name
-
-        if init_values:
-            self.heapify(init_values)
-
-    def __str__(self):
-        return f"{self.name}: {self.root.value}"
 
     def insert(self, value):
         if self.root is None:
@@ -56,28 +49,10 @@ class MaxHeap:
             node.swap(node.parent)
             self.upheap(node.parent)
 
-    def downheap(self, node):
-        left = node.left
-        right = node.right
-
-        if left:
-            if right:
-                if left > node and left > right:
-                    #  print(f"left, swapping {left.value[0]} with {node.value[0]}")
-                    node.swap(left)
-                    self.downheap(left)
-                elif right > node and right > left:
-                    #  print(f"right, swapping {right.value[0]} with {node.value[0]}")
-                    node.swap(right)
-                    self.downheap(right)
-            elif not right and left > node:
-                #print(f"left, swapping {left.value[0]} with {node.value[0]}")
-                node.swap(left)
-                self.downheap(left)
-
     def heapify(self, values):
         for value in values:
             self.insert(value)
+        return self
 
     def remove_max(self):
         #Get current max value in root
@@ -86,16 +61,31 @@ class MaxHeap:
 
         if len(self.insertion_stack) == 1:
             return max_value
-        
+    
         #Swap root value with last inserted node
         self.root.swap(self.last_insertion)
         
         self.delete_last_inserted()
 
-        self.downheap(self.root)
+        self.sort(self.root)
+        
        # self.sort(None,self.root)
         return max_value
     
+    def sort(self, node):
+        if node.left:
+            if node.right:
+                if node.left > node and node.left > node.right:
+                    node.swap(node.left)
+                elif node.right > node and node.right > node.left:
+                    node.swap(node.right)
+                self.sort(node.left)
+                self.sort(node.right)
+            else:
+                if node.left > node:
+                    node.swap(node.left)
+                self.sort(node.left)
+
     def delete_last_inserted(self):
         #Pop current last insertion of stack
         self.insertion_stack.pop()
@@ -124,16 +114,10 @@ class MaxHeap:
         node.swap(self.last_insertion)
         
         self.delete_last_inserted()
-        
+
         if not self.is_empty():
-            if node is not self.root:
-                if node.value > node.parent.value:
-                    self.upheap(node)
-                else:
-                    self.downheap(node) 
-            else:
-                self.downheap(node)
-    
+            self.sort(self.root)
+        
     def is_empty(self):
         return self.root is None
 
@@ -163,14 +147,11 @@ class MaxHeap:
         def is_left_child(self):
             return self is self.parent.left if self.parent else False
         
-        def is_right_child(self):
-            return self is self.parent.right if self.parent else False
-        
         def delete(self):
             if self.parent:
                 if self.is_left_child():
                     self.parent.left = None
-                elif self.is_right_child():
+                else:
                     self.parent.right = None
 
 
@@ -215,8 +196,8 @@ def main(input_file):
                 balls = [(int(i),sum_of_digits(int(i))) for i in input_file.readline().replace("\n","").replace("\t", " ").split(" ")]
                 toss_result = input_file.readline().replace("\n","").lower()
 
-                value_priority_player = MaxHeap("SCOTT", balls)
-                digit_sum_priority_player = PrioritySumDigits("RUSTY", balls)
+                value_priority_player = MaxHeap().heapify(balls)
+                digit_sum_priority_player = PrioritySumDigits().heapify(balls)
             
                 if toss_result == 'heads':
                     current_player, waiting_player = value_priority_player, digit_sum_priority_player
@@ -226,6 +207,7 @@ def main(input_file):
                 turns = 0
                 while turns < n:
                     #  print(current_player)
+                   # print(current_player)
                     value, digit_sum = current_player.remove_max()
                     current_player.score += value
                     waiting_player.remove_value((value,digit_sum))
