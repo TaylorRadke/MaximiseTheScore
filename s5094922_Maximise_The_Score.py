@@ -1,16 +1,15 @@
-#!/usr/bin/python3.6
 import sys
 import math
-from time import time
+import timeit
 
-
+#Base class fpr Priority Queue that defines it priority as the actual value of each node
 class MaxHeap:
-    
     def __init__(self):    
         self.root = None
         self.insertion_stack = []
         self.score = 0
 
+    #Insert node into the heap
     def insert(self, value):
         if self.root is None:
             self.root = self.Node(None, value)
@@ -44,16 +43,19 @@ class MaxHeap:
         
         return self.next_insertion(node.parent)
 
+    #Swaps the node up while the current node has a greater value than its parent
     def upheap(self, node):
         if node is not self.root and node > node.parent:
             node.swap(node.parent)
             self.upheap(node.parent)
 
+    #Turns an array into a heap
     def heapify(self, values):
         for value in values:
             self.insert(value)
         return self
 
+    #Remove the root element (node with greateest value) from the heap
     def remove_max(self):
         #Get current max value in root
         
@@ -72,6 +74,7 @@ class MaxHeap:
        # self.sort(None,self.root)
         return max_value
     
+    #Swap each nodes down if it is less than its children
     def sort(self, node):
         if node.left:
             if node.right:
@@ -87,18 +90,18 @@ class MaxHeap:
                 self.sort(node.left)
 
     def delete_last_inserted(self):
-        #Pop current last insertion of stack
+        #Pop current last insertion off stack
         self.insertion_stack.pop()
-        # Set child of parent to None
+
         self.last_insertion.delete()
+
         if self.insertion_stack:
             self.last_insertion = self.insertion_stack[-1]
         else:
-            #Heap is empty
             self.root = None
 
+     #Find first occurence of value in heap and delete it
     def remove_value(self,value):
-        #Find first occurrence of value in heap
         frontier = [self.root]
 
         while frontier:
@@ -117,7 +120,7 @@ class MaxHeap:
 
         if not self.is_empty():
             self.sort(self.root)
-        
+ 
     def is_empty(self):
         return self.root is None
 
@@ -141,9 +144,11 @@ class MaxHeap:
         def __ne__(self,other):
             return self.value[0] != other.value[0]
 
+        #Swap the values of self and other
         def swap(self,other):
             self.value, other.value = other.value, self.value
         
+        #Check if self is a left child of its parent
         def is_left_child(self):
             return self is self.parent.left if self.parent else False
         
@@ -183,7 +188,6 @@ def sum_of_digits(val):
         sum += ((1 / pow(10,n) * (val % pow(10,n + 1) - (val % pow(10,n)))))
     return int(sum)
 
-
 def main(input_file):
     with open(input_file) as input_file:
         with open("output.txt",'w') as output_file:
@@ -204,6 +208,8 @@ def main(input_file):
                 elif toss_result == 'tails':
                     current_player, waiting_player = digit_sum_priority_player, value_priority_player
 
+                start = timeit.default_timer()
+
                 turns = 0
                 while turns < n:
                     #  print(current_player)
@@ -216,6 +222,7 @@ def main(input_file):
                     if turns % k == 0:
                         current_player, waiting_player = waiting_player, current_player
 
+                print(f"{timeit.default_timer() - start}")
                 output_file.write(f"{str(value_priority_player.score)} {str(digit_sum_priority_player.score)}\n")
 
 if __name__ == "__main__":
